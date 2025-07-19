@@ -10,6 +10,13 @@ In the `/replication` directory, you will find:
  - Images for baseline conditions
  - The task viewer and task editor in the `/task_viewer` directory, along with the corresponding .xml configuration file
 
+Music Links:
+
+ - https://lofigirl.com/releases/blue-note/
+ - https://lofigirl.com/releases/down-hill/
+ - https://lofigirl.com/releases/dune-days/
+ - https://lofigirl.com/releases/palette/
+
 # Forms
 
 In the `/forms` directory, you will find the pre-experiment forms utilized in our study.
