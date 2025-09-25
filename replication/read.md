@@ -1,4 +1,4 @@
-## Replication Package
+## Replication Package - Executing Prophet Tool
 
 In the `/replication` directory, you will find the zip file `prophet_eeg_study.zip` containing:
 
