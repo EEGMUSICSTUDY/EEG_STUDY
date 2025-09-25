@@ -9,13 +9,16 @@ In the `/replication` directory, you will find:
  - All stimuli used for participants in the `/tasks` folder
  - Images for baseline conditions
  - The task viewer and task editor in the `/task_viewer` directory, along with the corresponding .xml configuration file
+ - For more informations to how use the files on `/task_viewer` directory, access the following github page to undestand about the tool used in this sudy to execute the testing comprehension scenarios: https://github.com/feigensp/Prophet
 
 Music Links:
 
- - https://lofigirl.com/releases/blue-note/
- - https://lofigirl.com/releases/down-hill/
- - https://lofigirl.com/releases/dune-days/
- - https://lofigirl.com/releases/palette/
+For this study, we used the albums Blue Note, Down Hill, Dune Days, and Palette, all provided by LofiGirl. Due to copyright and redistribution reasons, we cannot add them to this repository
+
+ - https://lofigirl.bandcamp.com/album/blue-note
+ - https://youtu.be/LhdZNzfoDIA?si=ummKWmJFRY1fswVd
+ - https://lofigirl.bandcamp.com/album/dune-days
+ - https://lofigirl.bandcamp.com/album/palette
 
 # Forms
 
