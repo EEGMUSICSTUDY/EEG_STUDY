@@ -6,17 +6,10 @@ This repository provides the **replication package**, **analysis scripts**, and 
 
 ## Replication Package
 
-In the `/replication` directory, you will find:
-
-* **Tasks**: All stimuli presented to participants (`/tasks` folder).
-* **Baseline images**: Reference images used for baseline conditions.
-* **Prophet tool**: A task viewer and task editor are provided in the `/task_viewer` directory, along with the corresponding .xml configuration file used to create the tasks.
-   * You need to have Java installed.
-   * To run the experiment, simply open the executable JAR file `experiment-viewer.jar`. This will load the default configuration used in the study.
-   * Make sure that the tasks (.png images), the .jar files, and the .xml file are all located in the same folder.
-   * For more details on how to use the Prophet tool, please refer to the official repository: [Prophet GitHub](https://github.com/feigensp/Prophet).
+In the `/replication` directory, you will find the zip file `prophet_eeg_study.zip` along with a README containing instructions on how to replicate the experiment using the customized Prophet tool.
 
 ---
+
 
 ## Music Links
 
