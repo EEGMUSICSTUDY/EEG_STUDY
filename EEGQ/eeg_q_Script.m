@@ -4,8 +4,8 @@ clear all;
 Nome = '';
 
 % Define input and output folders
-pastaDados  = 'C:\Users\dhyeg\OneDrive\Dhyego\Mestrado\Matlab\Scripts\EDF_Rose\MERGE\SET\netlab\';
-pastaReport = 'C:\Users\dhyeg\OneDrive\Dhyego\Mestrado\Matlab\Scripts\EDF_Rose\MERGE\SET\netlab\Relatorio\';
+pastaDados  = 'C:\Users\eegStudy\Matlab\Scripts\EDF_files\MERGE\SET\netlab\';  % update to your file location
+pastaReport = 'C:\Users\eegStudy\Matlab\Scripts\EDF_files\MERGE\SET\netlab\Report\';  % update to your file location
 mkdir(pastaReport);  % Create report folder if it does not exist
 
 % Frequency markers and overall range
@@ -170,3 +170,4 @@ end
 
 fclose all;
 disp('PROCESSING COMPLETE');
+
