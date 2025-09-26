@@ -1,4 +1,4 @@
-% Clear workspace, close figures, and clear the command window
+% Clear workspace, close all figures, and clear the command window
 clear all;
 close all;
 clc;
@@ -39,13 +39,16 @@ nFiles   = numel(setFiles);
 
 %% Load first file to capture channel labels
 EEG = pop_loadset('filename', setFiles(1).name, 'filepath', dataDir);
+
 % Standardize labels to uppercase
 for i = 1:EEG.nbchan
     EEG.chanlocs(i).labels = upper(EEG.chanlocs(i).labels);
 end
+
 % Remove unwanted channels
 EEG = pop_select(EEG, 'nochannel', upper(channelsToRemove));
 nChannels = EEG.nbchan;
+
 % Store remaining channel names
 for i = 1:nChannels
     channelNames{i} = EEG.chanlocs(i).labels;
@@ -66,7 +69,7 @@ for fIdx = 1:nFiles
     EEG = pop_select(EEG, 'nochannel', channelsToRemove);
     EEG = eeg_checkset(EEG);
     
-    % Adjust epochEnd if using -1 to indicate ìall epochsî
+    % Adjust epochEnd if using -1 to indicate ‚Äúall epochs‚Äù
     if epochEnd == -1
         epochEnd = EEG.trials;
     end
@@ -82,11 +85,11 @@ for fIdx = 1:nFiles
     EEG = pop_rejepoch(EEG, rejectEpochs, 0);
     
     % Extract data parameters
-    nPoints  = EEG.pnts;
-    nEpochs  = EEG.trials;
-    sRate    = EEG.srate;
-    data     = EEG.data;
-    chanIdx  = 1:EEG.nbchan;
+    nPoints  = EEG.pnts;      % Number of data points per epoch
+    nEpochs  = EEG.trials;    % Number of epochs
+    sRate    = EEG.srate;     % Sampling rate
+    data     = EEG.data;      % EEG data matrix
+    chanIdx  = 1:EEG.nbchan;  % Channel indices
     
     % Compute mean spectral power for each rhythm
     for r = 1:length(rhythms)
@@ -95,9 +98,9 @@ for fIdx = 1:nFiles
             freqStart(r), freqEnd(r), ...
             chanIdx, nPoints, nEpochs, sRate, data ...
         );
-        powerResults{r, fIdx, 2} = nEpochs;
-        powerResults{r, fIdx, 3} = spec;
-        powerStd{r, fIdx, 1}     = std(spec);
+        powerResults{r, fIdx, 2} = nEpochs;  % Store number of epochs
+        powerResults{r, fIdx, 3} = spec;     % Store spectral power
+        powerStd{r, fIdx, 1}     = std(spec);% Store standard deviation
     end
 end
 

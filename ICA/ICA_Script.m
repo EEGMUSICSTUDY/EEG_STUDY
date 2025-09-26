@@ -5,7 +5,7 @@ tic;  % Start timer
 % Define directories (customize these paths as needed)
 dataDir   = 'C:\path\to\edf_files\';    % Directory containing .edf files (include trailing slash)
 outputDir = fullfile(dataDir, 'SET\');  % Directory to save processed .set files
-chanLocs  = 'standard_1005.elc';         % Channel location file (in MATLAB path or full path)
+chanLocs  = 'standard_1005.elc';        % Channel location file (in MATLAB path or full path)
 
 % Create output folder if it does not exist
 if ~exist(outputDir, 'dir')
@@ -23,9 +23,9 @@ for i = 1:nFiles
     
     % Load EDF file without importing events or annotations
     EEG = pop_biosig(fullfile(dataDir, filename), ...
-                     'importevent','off', ...
-                     'blockepoch','off', ...
-                     'importannot','off');
+                     'importevent', 'off', ...
+                     'blockepoch',  'off', ...
+                     'importannot', 'off');
                  
     % Remove non-EEG channels by name
     EEG = pop_select(EEG, 'nochannel', { ...
@@ -47,7 +47,7 @@ for i = 1:nFiles
         'pca',       55 ...
     );
     
-    % Remove first four independent components
+    % Remove the first four independent components
     EEG = pop_subcomp(EEG, [1 2 3 4], 0);
     
     % Check dataset consistency

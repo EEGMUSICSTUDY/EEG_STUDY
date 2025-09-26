@@ -3,7 +3,7 @@ clear;
 close all;
 clc;
 
-% (Optional) Add EEGLAB to MATLAB path if it isn’t already
+% (Optional) Add EEGLAB to MATLAB path if it isnâ€™t already
 % eeglabPath = 'path/to/eeglab';
 % addpath(eeglabPath);
 
@@ -11,7 +11,7 @@ clc;
 eeglab;
 
 % Define the folder containing your EDF files
-dataDir = 'C:\path\to\edf_files\session007\';  % ? Update to your folder
+dataDir = 'C:\path\to\edf_files\session007\';  % Update to your folder
 
 % Get a list of all .edf files in that folder
 edfFiles = dir(fullfile(dataDir, '*.edf'));
@@ -33,7 +33,7 @@ for i = 2:numFiles
 end
 
 % Save the merged dataset back to EDF format
-outputFile = fullfile(dataDir, 'merged_session007.edf');  % ? Rename as needed
+outputFile = fullfile(dataDir, 'merged_session007.edf');  % Rename as needed
 pop_writeeeg(EEG, outputFile, 'TYPE', 'EDF');
 
 disp('EDF files successfully merged and saved.');
