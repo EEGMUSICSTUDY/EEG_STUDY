@@ -1,33 +1,33 @@
 clear all;
 
 % Subject name (can be left empty for batch processing)
-Nome = '';
+subjectName = '';
 
 % Define input and output folders
-pastaDados  = 'C:\Users\eegStudy\Matlab\Scripts\EDF_files\MERGE\SET\netlab\';  % update to your file location
-pastaReport = 'C:\Users\eegStudy\Matlab\Scripts\EDF_files\MERGE\SET\netlab\Report\';  % update to your file location
-mkdir(pastaReport);  % Create report folder if it does not exist
+dataFolder   = 'C:\Users\eegStudy\Matlab\Scripts\EDF_files\MERGE\SET\netlab\';  % Update to your folder
+reportFolder = 'C:\Users\eegStudy\Matlab\Scripts\EDF_files\MERGE\SET\netlab\Report\';  % Update to your folder
+mkdir(reportFolder);  % Create report folder if it does not exist
 
 % Frequency markers and overall range
-FreqMap   = [3 11 22 34];
-FreqRange = [2 40];
+freqMarkers = [3 11 22 34];
+freqRange   = [2 40];
 
 % Channels to remove from analysis
-delChanels = {'Cz','Status','trigger'};
+channelsToRemove = {'Cz','Status','trigger'};
 
 % Define EEG rhythms and their frequency bands
-ritmos = {'Delta', 'Teta', 'Alfa','Beta'};
-freqIn = [0.5, 4, 8, 13];      % Lower frequency of each rhythm (Hz)
-freqFi = [3.99, 7.99, 12.99, 30]; % Upper frequency of each rhythm (Hz)
+rhythms    = {'Delta', 'Theta', 'Alpha','Beta'};
+freqStart  = [0.5, 4, 8, 13];      % Lower frequency of each rhythm (Hz)
+freqEnd    = [3.99, 7.99, 12.99, 30]; % Upper frequency of each rhythm (Hz)
 
 % Epoch range for trimming
-EpIni = 1;   % First epoch to keep (1 = from the beginning)
-EpFin = 30;  % Last epoch to keep (-1 = keep all epochs)
+epochStart = 1;   % First epoch to keep (1 = from the beginning)
+epochEnd   = 30;  % Last epoch to keep (-1 = keep all epochs)
 
 %% Define brain regions and corresponding electrodes
-reg = {'FrontalD','FrontalE','CentralD','CentralE','TempDir','TempEsq','ParietalD','ParietalE','OcipitalD','OcipitalE'};
+regions = {'FrontalRight','FrontalLeft','CentralRight','CentralLeft','TemporalRight','TemporalLeft','ParietalRight','ParietalLeft','OccipitalRight','OccipitalLeft'};
 
-regE = {  
+regionElectrodes = {  
     {'FP2','AF4','F10','F8','F6','F4'},       % Frontal right
     {'FP1','AF3','F9','F7','F5','F3'},       % Frontal left
     {'FC6','FC4','FC2','F2','C6','C4','C2'}, % Central right
@@ -41,127 +41,127 @@ regE = {
 };
 
 %% Read .set files from folder
-arq = dir([pastaDados, Nome, '*.set']); % List all .set files in folder
-tamanho = length(arq);                   % Number of files
+setFiles = dir([dataFolder, subjectName, '*.set']); % List all .set files
+numFiles = length(setFiles);                        % Number of files
 
 %% Load first file to get channel names
-EEG = pop_loadset([pastaDados arq(1).name]);
-ncanais = EEG.nbchan;
+EEG = pop_loadset([dataFolder setFiles(1).name]);
+numChannels = EEG.nbchan;
 
 % Standardize channel labels to uppercase
-for i = 1:ncanais
+for i = 1:numChannels
     EEG.chanlocs(i).labels = upper(EEG.chanlocs(i).labels);
 end
 
 % Remove unwanted channels
-EEG = pop_select(EEG,'nochannel',upper(delChanels));
-ncanais = EEG.nbchan;
+EEG = pop_select(EEG,'nochannel',upper(channelsToRemove));
+numChannels = EEG.nbchan;
 
 % Store remaining channel names
-for i = 1:ncanais
-    chans{i} = EEG.chanlocs(i).labels; 
+for i = 1:numChannels
+    channelNames{i} = EEG.chanlocs(i).labels; 
 end
 clear EEG
 
 %% Preallocate result storage
-out = cell(length(ritmos), length(arq), 3); % Spectral power per channel
-des = cell(length(ritmos), length(arq), 1); % Standard deviation
+powerResults = cell(length(rhythms), numFiles, 3); % Spectral power per channel
+powerStd     = cell(length(rhythms), numFiles, 1); % Standard deviation
 
 %% MAIN LOOP: Process each file
-for i = 1:tamanho
-    disp(['PROCESSING FILE -------------------- ' arq(i).name]);
+for fIdx = 1:numFiles
+    disp(['PROCESSING FILE -------------------- ' setFiles(fIdx).name]);
     
     % Load dataset
-    EEG = pop_loadset([pastaDados arq(i).name]);
+    EEG = pop_loadset([dataFolder setFiles(fIdx).name]);
     
     % Remove unwanted channels
-    EEG = pop_select(EEG,'nochannel',delChanels);
+    EEG = pop_select(EEG,'nochannel',channelsToRemove);
     EEG = eeg_checkset(EEG);
     
-    % Adjust epoch end if EpFin == -1 (all epochs)
-    if EpFin == 1
-        EpFin = EEG.trials;
+    % Adjust epoch end if epochEnd == -1 (all epochs)
+    if epochEnd == 1
+        epochEnd = EEG.trials;
     end
     
     % Define epochs to reject outside desired range
-    range = [];
-    if EpIni > 1
-        range = [1:EpIni-1];
+    rejectEpochs = [];
+    if epochStart > 1
+        rejectEpochs = [1:epochStart-1];
     end
-    if EpFin < EEG.trials
-        range = [range EpFin+1:EEG.trials];
+    if epochEnd < EEG.trials
+        rejectEpochs = [rejectEpochs epochEnd+1:EEG.trials];
     end
-    EEG = pop_rejepoch(EEG, range, 0);
+    EEG = pop_rejepoch(EEG, rejectEpochs, 0);
     
     %% Compute mean spectral power for each rhythm
-    np     = EEG.pnts;      % Number of points per epoch
-    nepcs  = EEG.trials;    % Number of epochs
-    srate  = EEG.srate;     % Sampling rate
-    eegData = EEG.data;     % EEG data matrix
-    canais = 1:EEG.nbchan;  % Channel indices
+    numPoints = EEG.pnts;      % Number of points per epoch
+    numEpochs = EEG.trials;    % Number of epochs
+    sRate     = EEG.srate;     % Sampling rate
+    eegData   = EEG.data;      % EEG data matrix
+    channelIdx = 1:EEG.nbchan; % Channel indices
     
-    for r = 1:length(ritmos)
-        disp(['Calculating power for ' ritmos{r}]);
-        spec = meanfreq2(freqIn(r), freqFi(r), canais, np, nepcs, srate, eegData);
-        out{r,i,2} = nepcs;  % Store number of epochs
-        out{r,i,3} = spec;   % Store spectral power
-        des{r,i,1} = std(spec); % Store standard deviation
+    for r = 1:length(rhythms)
+        disp(['Calculating power for ' rhythms{r}]);
+        spec = meanfreq2(freqStart(r), freqEnd(r), channelIdx, numPoints, numEpochs, sRate, eegData);
+        powerResults{r,fIdx,2} = numEpochs;  % Store number of epochs
+        powerResults{r,fIdx,3} = spec;       % Store spectral power
+        powerStd{r,fIdx,1}     = std(spec);  % Store standard deviation
     end
 end
 
 %% Generate individual-level CSV
-for rt = 1:length(ritmos)
-    fp = fopen([pastaReport ritmos{rt} '_IND.csv'], 'wt');
-    fprintf(fp, 'Freq. Range[%d,%d]\n', freqIn(rt), freqFi(rt));
+for rIdx = 1:length(rhythms)
+    fp = fopen([reportFolder rhythms{rIdx} '_IND.csv'], 'wt');
+    fprintf(fp, 'Freq. Range[%d,%d]\n', freqStart(rIdx), freqEnd(rIdx));
     fprintf(fp,'Name;#Epochs;Power\n');
     
-    for j = 1:length(arq)
-        fprintf(fp,'%s;%d', arq(j).name, out{rt,j,2});
-        soma = mean(out{rt,j,3}); % Mean across channels
-        fprintf(fp, ';%f\n', soma);
+    for fIdx = 1:numFiles
+        fprintf(fp,'%s;%d', setFiles(fIdx).name, powerResults{rIdx,fIdx,2});
+        meanPower = mean(powerResults{rIdx,fIdx,3}); % Mean across channels
+        fprintf(fp, ';%f\n', meanPower);
     end
     fclose(fp);
 
     %% Electrode-level CSV
-    fp = fopen([pastaReport ritmos{rt} '_ELE.csv'], 'wt');
-    fprintf(fp, 'Freq. Range[%d,%d]\n', freqIn(rt), freqFi(rt));
+    fp = fopen([reportFolder rhythms{rIdx} '_ELE.csv'], 'wt');
+    fprintf(fp, 'Freq. Range[%d,%d]\n', freqStart(rIdx), freqEnd(rIdx));
     fprintf(fp,'Name;#Epochs');
-    for i = 1:ncanais
-        fprintf(fp, ';%s', chans{i});
+    for c = 1:numChannels
+        fprintf(fp, ';%s', channelNames{c});
     end
     fprintf(fp,'\n');
     
-    for j = 1:length(arq)
-        fprintf(fp,'%s;%d', arq(j).name, out{rt,j,2});
-        for i = 1:ncanais
-            fprintf(fp, ';%f', out{rt,j,3}(i));
+    for fIdx = 1:numFiles
+        fprintf(fp,'%s;%d', setFiles(fIdx).name, powerResults{rIdx,fIdx,2});
+        for c = 1:numChannels
+            fprintf(fp, ';%f', powerResults{rIdx,fIdx,3}(c));
         end
         fprintf(fp,'\n');
     end
     fclose(fp);
     
     %% Region-level CSV
-    fp = fopen([pastaReport ritmos{rt} '_REG.csv'], 'wt');
-    fprintf(fp, 'Freq. Range[%d,%d]\n', freqIn(rt), freqFi(rt));
+    fp = fopen([reportFolder rhythms{rIdx} '_REG.csv'], 'wt');
+    fprintf(fp, 'Freq. Range[%d,%d]\n', freqStart(rIdx), freqEnd(rIdx));
     fprintf(fp,'Name;#Epochs');
-    for r = 1:length(reg)
-        fprintf(fp, ';%s', reg{r});
+    for regIdx = 1:length(regions)
+        fprintf(fp, ';%s', regions{regIdx});
     end
     fprintf(fp,'\n');
     
-    for j = 1:length(arq)
-        fprintf(fp,'%s;%d', arq(j).name, out{rt,j,2});
-        for r = 1:length(reg)
-            soma = 0;
-            N = 0;
-            for i = 1:ncanais
-                id = find(strcmpi(regE{r}, chans{i}));
-                if ~isempty(id)
-                    soma = soma + out{rt,j,3}(i);
-                    N = N + 1;
+    for fIdx = 1:numFiles
+        fprintf(fp,'%s;%d', setFiles(fIdx).name, powerResults{rIdx,fIdx,2});
+        for regIdx = 1:length(regions)
+            sumPower = 0;
+            count    = 0;
+            for c = 1:numChannels
+                idx = find(strcmpi(regionElectrodes{regIdx}, channelNames{c}));
+                if ~isempty(idx)
+                    sumPower = sumPower + powerResults{rIdx,fIdx,3}(c);
+                    count = count + 1;
                 end
             end
-            fprintf(fp, ';%f', soma/N); % Average power per region
+            fprintf(fp, ';%f', sumPower/count); % Average power per region
         end
         fprintf(fp,'\n');
     end
@@ -170,4 +170,3 @@ end
 
 fclose all;
 disp('PROCESSING COMPLETE');
-
